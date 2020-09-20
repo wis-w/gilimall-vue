@@ -82,23 +82,27 @@ export default {
                 callback(new Error("首字母必须填写"));
               } else if (!/^[a-zA-Z]$/.test(value)) {
                 callback(new Error("需填写正确的字母"));
-              }else{
+              } else {
                 callback();
               }
             },
             trigger: "blur",
           },
         ],
-        sort: [{ validator: (rule, value, callback) => {
+        sort: [
+          {
+            validator: (rule, value, callback) => {
               if (value == "") {
-                callback(new Error("排序规则必须填写"));
-              } else if (!Number.isInteger(value) || value <0) {
+                callback(new Error("排序字段必须填写"));
+              } else if (!Number.isInteger(value) || value < 0) {
                 callback(new Error("必须大于等于0"));
-              }else{
+              } else {
                 callback();
               }
-            }
-            , trigger: "blur" }],
+            },
+            trigger: "blur",
+          },
+        ],
       },
     };
   },
