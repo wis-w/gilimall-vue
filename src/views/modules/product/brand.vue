@@ -31,7 +31,10 @@
       <el-table-column prop="name" header-align="center" align="center" label="品牌名"></el-table-column>
       <el-table-column prop="logo" header-align="center" align="center" label="品牌logo地址">
         <template slot-scope="scope">
-          <!-- <el-image style="width: 100px; height: 80px" :src="scope.row.logo" fit="fill"></el-image> -->
+          <!-- <el-image
+              style="width: 100px; height: 80px"
+              :src="scope.row.logo"
+          fit="fill"></el-image>-->
           <img :src="scope.row.logo" style="width: 100px; height: 80px" />
         </template>
       </el-table-column>
@@ -44,13 +47,13 @@
             inactive-color="#ff4949"
             :active-value="1"
             :inactive-value="0"
-            @change="updataBrandStatus(scope.row)"
+            @change="updateBrandStatus(scope.row)"
           ></el-switch>
         </template>
       </el-table-column>
       <el-table-column prop="firstLetter" header-align="center" align="center" label="检索首字母"></el-table-column>
       <el-table-column prop="sort" header-align="center" align="center" label="排序"></el-table-column>
-      <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
+      <el-table-column fixed="right" header-align="center" align="center" width="250" label="操作">
         <template slot-scope="scope">
           <el-button type="text" size="small" @click="updateCatelogHandle(scope.row.brandId)">关联分类</el-button>
           <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.brandId)">修改</el-button>
@@ -69,7 +72,8 @@
     ></el-pagination>
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getDataList"></add-or-update>
-     <el-dialog title="关联分类" :visible.sync="cateRelationDialogVisible" width="30%">
+
+    <el-dialog title="关联分类" :visible.sync="cateRelationDialogVisible" width="30%">
       <el-popover placement="right-end" v-model="popCatelogSelectVisible">
         <category-cascader :catelogPath.sync="catelogPath"></category-cascader>
         <div style="text-align: right; margin: 0">
@@ -107,10 +111,10 @@ export default {
   data() {
     return {
       dataForm: {
-        key: "",
+        key: ""
       },
-      catelogPath: [],
       brandId: 0,
+      catelogPath: [],
       dataList: [],
       cateRelationTableData: [],
       pageIndex: 1,
@@ -125,7 +129,7 @@ export default {
   },
   components: {
     AddOrUpdate,
-    CategoryCascader,
+    CategoryCascader
   },
   activated() {
     this.getDataList();
@@ -142,15 +146,13 @@ export default {
         this.getCateRelation();
       });
     },
-    getCateRelation() {
+    deleteCateRelationHandle(id, brandId) {
       this.$http({
-        url: this.$http.adornUrl("/product/categorybrandrelation/catelog/list"),
-        method: "get",
-        params: this.$http.adornParams({
-          brandId: this.brandId,
-        }),
+        url: this.$http.adornUrl("/product/categorybrandrelation/delete"),
+        method: "post",
+        data: this.$http.adornData([id], false)
       }).then(({ data }) => {
-        this.cateRelationTableData = data.data;
+        this.getCateRelation();
       });
     },
     updateCatelogHandle(brandId) {
@@ -158,18 +160,15 @@ export default {
       this.brandId = brandId;
       this.getCateRelation();
     },
-    // 修改状态
-    updataBrandStatus(data) {
-      let { brandId, showStatus } = data;
+    getCateRelation() {
       this.$http({
-        url: this.$http.adornUrl("/product/brand/update/status"),
-        method: "post",
-        data: this.$http.adornData({ brandId, showStatus }, false),
+        url: this.$http.adornUrl("/product/categorybrandrelation/catelog/list"),
+        method: "get",
+        params: this.$http.adornParams({
+          brandId: this.brandId
+        })
       }).then(({ data }) => {
-        this.$message({
-          type: "success",
-          message: "状态修改成功",
-        });
+        this.cateRelationTableData = data.data;
       });
     },
     // 获取数据列表
@@ -181,8 +180,8 @@ export default {
         params: this.$http.adornParams({
           page: this.pageIndex,
           limit: this.pageSize,
-          key: this.dataForm.key,
-        }),
+          key: this.dataForm.key
+        })
       }).then(({ data }) => {
         if (data && data.code === 0) {
           this.dataList = data.page.list;
@@ -192,6 +191,21 @@ export default {
           this.totalPage = 0;
         }
         this.dataListLoading = false;
+      });
+    },
+    updateBrandStatus(data) {
+      console.log("最新信息", data);
+      let { brandId, showStatus } = data;
+      //发送请求修改状态
+      this.$http({
+        url: this.$http.adornUrl("/product/brand/update/status"),
+        method: "post",
+        data: this.$http.adornData({ brandId, showStatus }, false)
+      }).then(({ data }) => {
+        this.$message({
+          type: "success",
+          message: "状态更新成功"
+        });
       });
     },
     // 每页数
@@ -220,7 +234,7 @@ export default {
     deleteHandle(id) {
       var ids = id
         ? [id]
-        : this.dataListSelections.map((item) => {
+        : this.dataListSelections.map(item => {
             return item.brandId;
           });
       this.$confirm(
@@ -229,13 +243,13 @@ export default {
         {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
-          type: "warning",
+          type: "warning"
         }
       ).then(() => {
         this.$http({
           url: this.$http.adornUrl("/product/brand/delete"),
           method: "post",
-          data: this.$http.adornData(ids, false),
+          data: this.$http.adornData(ids, false)
         }).then(({ data }) => {
           if (data && data.code === 0) {
             this.$message({
@@ -244,14 +258,14 @@ export default {
               duration: 1500,
               onClose: () => {
                 this.getDataList();
-              },
+              }
             });
           } else {
             this.$message.error(data.msg);
           }
         });
       });
-    },
-  },
+    }
+  }
 };
 </script>
